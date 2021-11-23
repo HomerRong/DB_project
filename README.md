@@ -1,8 +1,6 @@
 ## E-R图设计
 
-使用
-
-[dbdiagram.io]: https://dbdiagram.io/
+使用[dbdiagram.io](https://dbdiagram.io/)
 
 由表生成ER模型
 
