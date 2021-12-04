@@ -1,0 +1,7 @@
+{
+  "host": "123.60.46.144",
+  "port": "5432",
+  "user": "gaussdb",
+  "password": "Rong@123",
+  "db_name": "postgres"
+}
