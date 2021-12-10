@@ -24,12 +24,6 @@ func MD5encode(password string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func copeWithError(err error) {
-	if err != nil {
-		log.Fatalf("uploadImg error: %v", err)
-	}
-}
-
 type DbInfo struct {
 	Host     string `json:"host"`
 	Port     string `json:"port"`
