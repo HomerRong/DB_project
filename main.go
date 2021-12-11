@@ -18,8 +18,9 @@ func main() {
 	settings.Setup()
 	db_model.SetupDb()
 	gredis.Setup()
+	db_model.Db.AutoMigrate(&db_model.Sticker{})
+	db_model.Db.AutoMigrate(&db_model.Share{})
 	r := routers.InitRouter()
-
 	err := r.Run("127.0.0.1:9000")
 	if err != nil {
 		return

@@ -17,7 +17,7 @@ type Security struct {
 type Sticker struct {
 	gorm.Model            // ID 主键 自增
 	Picture        string `json:"picture"     gorm:"type:varchar(200);not null "`
-	Category_id    uint   `json:"category_id" gorm:"type:varchar(50);not null "`
+	Category_id    uint   `json:"category_id" gorm:"not null "`
 	Like_num       uint   `json:"like_num"    gorm:"default:0"`
 	Collection_num uint   `json:"collection_num"    gorm:"default:0"`
 }

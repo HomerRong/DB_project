@@ -22,11 +22,6 @@ func Newshare(c *gin.Context) {
 
 	// 文件重命名
 	file.Filename = pkg.GetUniqueFilename()
-	// 上传文件至指定目录
-	err = c.SaveUploadedFile(file, "./sticker/"+file.Filename)
-	if err != nil {
-		log.Fatalf("uploadImg error: %v", err)
-	}
 
 	sessionID := c.PostForm("session_id")
 	log.Println(sessionID)
@@ -51,13 +46,23 @@ func Newshare(c *gin.Context) {
 			"message": "类别不存在",
 		})
 	} else {
+
+		// 上传文件至指定目录
+		err = c.SaveUploadedFile(file, "./sticker/"+file.Filename)
+		if err != nil {
+			log.Fatalf("uploadImg error: %v", err)
+		}
+
 		//插入sticker表
 		sticker := db_model.Sticker{
 			Picture:     file.Filename,
 			Category_id: category.ID,
 		}
 		// 插入元组
-		db_model.Db.Create(&sticker)
+		err = db_model.Db.Create(&sticker).Error
+		if err != nil {
+			log.Println(err)
+		}
 		// share 新增
 		share := db_model.Share{
 			User_id:    userID,
