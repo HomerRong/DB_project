@@ -17,6 +17,7 @@ func UploadImg(c *gin.Context) {
 	}
 	log.Printf("loadimg: %v", file.Filename)
 
+	//@TODO 文件重新命名
 	// 上传文件至指定目录
 	err = c.SaveUploadedFile(file, "./pic/"+file.Filename)
 	if err != nil {
