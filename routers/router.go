@@ -45,7 +45,10 @@ func InitRouter() *gin.Engine {
 
 	apiG.POST("/register", api.Register)
 	apiG.POST("/login", api.Login)
+	apiG.POST("/logout", api.Logout)
 	apiG.POST("/getquestion", api.GetQuestion)
 	apiG.POST("/resetpassword", api.ResetPassword)
+
+	apiG.POST("/newshare", api.Newshare)
 	return r
 }

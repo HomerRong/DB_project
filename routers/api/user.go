@@ -7,6 +7,7 @@ import (
 	"log"
 	"main/db_model"
 	"main/pkg"
+	"main/pkg/user_session"
 	"net/http"
 )
 
@@ -21,6 +22,10 @@ type RegisterRequest struct {
 type LoginByNameRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type LogoutRequest struct {
+	SessionID string `json:"session_id"`
 }
 
 type GetQuestionRequest struct {
@@ -88,27 +93,60 @@ func Login(c *gin.Context) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 用户名不存在
 		c.JSON(http.StatusOK, gin.H{
-			"code":    1,
-			"message": "用户名不存在",
+			"code":       1,
+			"message":    "用户名不存在",
+			"session_id": "",
 		})
 	} else { // 用户名存在
 		//密码是否正确
 		if pkg.MD5encode(tmp.Password) == user.Password {
+			log.Println(user.ID)
+			sessionID, _ := user_session.OpenSession(user.ID)
+			log.Printf("login session_id is %v", sessionID)
 			c.JSON(http.StatusOK, gin.H{
-				"code":    0,
-				"message": "成功登录",
+				"code":       0,
+				"message":    "成功登录",
+				"session_id": sessionID,
 			})
 
 		} else {
 			//密码错误
 			c.JSON(http.StatusOK, gin.H{
-				"code":    1,
-				"message": "密码错误",
+				"code":       1,
+				"message":    "密码错误",
+				"session_id": "",
 			})
 		}
 
 	}
 
+}
+
+func Logout(c *gin.Context) {
+	var tmp LogoutRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Println(err)
+	}
+
+	userID, _ := user_session.GetUserID(tmp.SessionID)
+	if userID == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "用户未登录，不能登出",
+		})
+		return
+	}
+
+	//关闭session
+	err := user_session.CloseSession(tmp.SessionID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "登出成功",
+	})
 }
 
 func GetQuestion(c *gin.Context) {
