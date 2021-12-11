@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"dbproject/mod/routers/api"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"main/routers/api"
 	"time"
 )
 
@@ -33,7 +33,7 @@ func InitRouter() *gin.Engine {
 			return true
 		},
 		//超时时间设定
-		MaxAge: 24 * time.Hour,
+		MaxAge: 10 * time.Hour,
 	})
 	// 使用跨域中间件，使前后端分离
 	r.Use(mwCORS)
@@ -42,5 +42,10 @@ func InitRouter() *gin.Engine {
 
 	apiG.POST("/upload", api.UploadImg)
 	apiG.GET("/getimg", api.GetImg)
+
+	apiG.POST("/register", api.Register)
+	apiG.POST("/login", api.Login)
+	apiG.POST("/getquestion", api.GetQuestion)
+	apiG.POST("/resetpassword", api.ResetPassword)
 	return r
 }
