@@ -19,6 +19,7 @@ func main() {
 	db_model.SetupDb()
 	gredis.Setup()
 	r := routers.InitRouter()
+
 	err := r.Run("127.0.0.1:9000")
 	if err != nil {
 		return

@@ -28,7 +28,7 @@ type Collection struct {
 }
 type Categorie struct {
 	gorm.Model                  // ID 主键 自增
-	Category_name        string `json:"category_name"   gorm:"type:varchar(200);not null" `
+	Category_name        string `json:"category_name"   gorm:"type:varchar(200);not null;unique" `
 	Category_description string `json:"category_description"   gorm:"type:varchar(200);not null "`
 }
 type Share struct {
