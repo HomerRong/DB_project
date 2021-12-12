@@ -1,10 +1,11 @@
 package routers
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"main/routers/api"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
@@ -50,5 +51,8 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/resetpassword", api.ResetPassword)
 
 	apiG.POST("/newshare", api.Newshare)
+	apiG.POST("/getshareid", api.GetShareId)
+	apiG.POST("/editshare", api.EditShare)
+	apiG.POST("/deleteshare", api.DeleteShare)
 	return r
 }
