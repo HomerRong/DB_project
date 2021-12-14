@@ -2,14 +2,13 @@ package api
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"log"
 	"main/db_model"
 	"main/pkg"
 	"main/pkg/user_session"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type GetShareIdRequest struct {
@@ -190,7 +189,7 @@ func DeleteShare(c *gin.Context) {
 	// ShareID 查询share
 	var share db_model.Share
 	if err := db_model.Db.Where("ID   = ?", tmp.ShareId).First(&share).Error; err != nil {
-		log.Println("FindShare error: %v", err)
+		log.Printf("FindShare error: %v\n", err)
 	}
 	// 验证用户
 	if userID != share.User_id {
@@ -207,4 +206,50 @@ func DeleteShare(c *gin.Context) {
 			"message": "删除成功",
 		})
 	}
+}
+
+//@TODO 完善getshare接口
+
+type GetShareRequest struct {
+	SessionId string `json:"session_id"`
+	PageNum   int    `json:"page_num"` // 当前请求的页号
+}
+
+// 响应中shares数组中的元素
+type Share struct {
+	ShareId uint   `json:"share_id"`
+	Content string `json:"content"`
+	Picture string `json:"picture"`
+}
+
+type ShareResponse struct {
+	Code   int     `json:"code"`
+	Shares []Share `json:"shares"`
+}
+
+func Getshare(c *gin.Context) {
+	GetshareReq := GetShareRequest{}
+	err := c.BindJSON(&GetshareReq)
+	if err != nil {
+		return
+	}
+	// 没有登录的情况
+	// 没有sessionID时，share结构体里的authority字段都为false
+	if GetshareReq.SessionId == "" {
+		log.Println("not have sessionId")
+	}
+	tmp := ShareResponse{}
+	tmp.Code = 0
+	var Shares []db_model.Share
+	// 取出前五条, 需要加上页数的偏移
+	db_model.Db.Limit(5).Offset(GetshareReq.PageNum * 5).Order("updated_at desc").Find(&Shares)
+
+	for _, share := range Shares {
+		//log.Println(share.Sticker_id)
+		stickerItem := db_model.Sticker{}
+		db_model.Db.Where("ID   = ?", share.Sticker_id).Find(&stickerItem)
+		//log.Println(stickerItem)
+		tmp.Shares = append(tmp.Shares, Share{share.ID, share.Content, stickerItem.Picture})
+	}
+	c.JSON(http.StatusOK, tmp)
 }
