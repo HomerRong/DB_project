@@ -243,6 +243,10 @@ func GetShare(c *gin.Context) {
 
 	PageNum := tmp.PageNum
 	log.Print(PageNum, PageSize)
+	// session id 为空
+	if tmp.SessionId == "" {
+		log.Println("not have sessionId")
+	}
 	// 通过sessionID得到userID再进行下一步操作
 	userID, _ := user_session.GetUserID(tmp.SessionId)
 	log.Println(tmp.SessionId)
