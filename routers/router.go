@@ -51,6 +51,7 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/resetpassword", api.ResetPassword)
 
 	apiG.POST("/newshare", api.Newshare)
+	apiG.POST("/getshare", api.Getshare)
 	apiG.POST("/getshareid", api.GetShareId)
 	apiG.POST("/editshare", api.EditShare)
 	apiG.POST("/deleteshare", api.DeleteShare)

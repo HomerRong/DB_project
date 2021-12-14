@@ -17,9 +17,15 @@ func UploadImg(c *gin.Context) {
 	}
 	log.Printf("loadimg: %v", file.Filename)
 
+	sessionId := c.PostForm("session_id")
+	log.Printf("upload sessionid is %v", sessionId)
+
+	content := c.PostForm("content")
+	log.Printf("upload content is %v", content)
+
 	//@TODO 文件重新命名
 	// 上传文件至指定目录
-	err = c.SaveUploadedFile(file, "./pic/"+file.Filename)
+	err = c.SaveUploadedFile(file, "./test_pic/"+file.Filename)
 	if err != nil {
 		log.Fatalf("uploadImg error: %v", err)
 	}
