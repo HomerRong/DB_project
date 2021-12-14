@@ -1,12 +1,17 @@
 package pkg
 
 import (
-	"github.com/google/uuid"
+	"path"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
-func GetUniqueFilename() string {
+func GetUniqueFilename(fname string) string {
 	name := uuid.New().String()
 	name = strings.Replace(name, "-", "", -1)
-	return name + ".png"
+	// 获取文件后缀
+	fileSuffix := path.Ext(fname)
+	// fmt.Println("fileSuffix =", fileSuffix)
+	return name + fileSuffix
 }

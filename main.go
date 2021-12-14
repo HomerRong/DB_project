@@ -8,12 +8,6 @@ import (
 	"main/routers"
 )
 
-// Response 返回参数
-type Response struct {
-	Code    int    `json:"code"`    //返回码，0为成功，1为失败
-	Message string `json:"message"` //返回信息
-}
-
 func main() {
 	settings.Setup()
 	db_model.SetupDb()

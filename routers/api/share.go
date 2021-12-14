@@ -7,6 +7,7 @@ import (
 	"main/pkg"
 	"main/pkg/user_session"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -22,6 +23,28 @@ type DeleteShareRequest struct {
 	ShareId   uint   `json:"share_id"`
 }
 
+type GetShareRequest struct {
+	SessionId string `json:"session_id"`
+	PageNum   int    `json:"page_num"` // 当前请求的页号
+}
+
+// 响应中shares数组中的元素
+type ShareResponseStruct struct {
+	ShareId   uint      `json:"share_id"`
+	Content   string    `json:"content"`
+	Picture   string    `json:"picture"`
+	LikeNum   uint      `json:"like_num"`
+	WatchNum  uint      `json:"watch_num"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Authority bool      `json:"authority"` // true为可以修改删除，false反之
+}
+
+//响应返回的json
+type ShareResponse struct {
+	Code   int                   `json:"code"`
+	Shares []ShareResponseStruct `json:"shares"`
+}
+
 func Newshare(c *gin.Context) {
 	var err error
 	//获得图片
@@ -32,7 +55,8 @@ func Newshare(c *gin.Context) {
 	log.Printf("loadimg: %v", file.Filename)
 
 	// 文件重命名
-	file.Filename = pkg.GetUniqueFilename()
+	tmp := file.Filename
+	file.Filename = pkg.GetUniqueFilename(tmp)
 
 	sessionID := c.PostForm("session_id")
 	log.Println(sessionID)
@@ -207,4 +231,45 @@ func DeleteShare(c *gin.Context) {
 			"message": "删除成功",
 		})
 	}
+}
+
+func GetShare(c *gin.Context) {
+	// 从请求中把数据取出来
+	const PageSize = 5
+	var tmp GetShareRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Fatalf("Bind GetShareRequest error: %v", err)
+	}
+
+	PageNum := tmp.PageNum
+	log.Print(PageNum, PageSize)
+	// 通过sessionID得到userID再进行下一步操作
+	userID, _ := user_session.GetUserID(tmp.SessionId)
+	log.Println(tmp.SessionId)
+	log.Println(userID)
+	//更新时间排序
+	var shares []db_model.Share
+	if err := db_model.Db.Order("Updated_At  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&shares).Error; err != nil {
+		log.Fatalf("find share: %v", err)
+	}
+	//  response
+	var data [PageSize]ShareResponseStruct
+	for index, share := range shares {
+		data[index].ShareId = share.ID
+		data[index].Content = share.Content
+		// 由sticker id 查 picture
+		var sticker db_model.Sticker
+		if err := db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker).Error; err != nil {
+			log.Fatalf("find sticker error: %v", err)
+		}
+		data[index].Picture = sticker.Picture
+		data[index].LikeNum = share.Like_num
+		data[index].WatchNum = share.Watch_num
+		data[index].UpdatedAt = share.UpdatedAt
+		data[index].Authority = (share.User_id == userID)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code":   0,
+		"shares": data,
+	})
 }

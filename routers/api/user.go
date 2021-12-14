@@ -2,13 +2,14 @@ package api
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log"
 	"main/db_model"
 	"main/pkg"
 	"main/pkg/user_session"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // 请求参数
@@ -169,6 +170,9 @@ func GetQuestion(c *gin.Context) {
 		// 获得Security_id 查询 问题
 		var s db_model.Security
 		err = db_model.Db.Where("ID = ?", user.Security_id).First(&s).Error
+		if err != nil {
+			log.Println("FindShare error: %v", err)
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0,
 			"message": s.Question,
@@ -197,6 +201,9 @@ func ResetPassword(c *gin.Context) {
 		// 用户存在
 		var s db_model.Security
 		err = db_model.Db.Where("ID = ?", user.Security_id).First(&s).Error
+		if err != nil {
+			log.Println("FindShare error: %v", err)
+		}
 		// 验证密保问题
 		if tmp.Answer == s.Answer {
 			// 回答正确 重置密码 update

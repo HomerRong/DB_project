@@ -54,5 +54,7 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/getshareid", api.GetShareId)
 	apiG.POST("/editshare", api.EditShare)
 	apiG.POST("/deleteshare", api.DeleteShare)
+	apiG.POST("/getshare", api.GetShare)
+
 	return r
 }
