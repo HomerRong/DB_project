@@ -9,6 +9,7 @@ import (
 
 type server struct {
 	RunMode  string
+	Host     string
 	HttpPort int
 }
 
