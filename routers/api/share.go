@@ -31,6 +31,7 @@ type GetShareRequest struct {
 // 响应中shares数组中的元素
 type ShareResponseStruct struct {
 	ShareId   uint      `json:"share_id"`
+	Username  string    `json:"username"`
 	Content   string    `json:"content"`
 	Picture   string    `json:"picture"`
 	LikeNum   uint      `json:"like_num"`
@@ -214,7 +215,7 @@ func DeleteShare(c *gin.Context) {
 	// ShareID 查询share
 	var share db_model.Share
 	if err := db_model.Db.Where("ID   = ?", tmp.ShareId).First(&share).Error; err != nil {
-		log.Println("FindShare error: %v", err)
+		log.Printf("FindShare error: %v\n", err)
 	}
 	// 验证用户
 	if userID != share.User_id {
@@ -224,6 +225,10 @@ func DeleteShare(c *gin.Context) {
 			"message": "user不匹配",
 		})
 	} else {
+		// 删除表情包记录
+		var sticker db_model.Sticker
+		db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker)
+		db_model.Db.Delete(&sticker)
 		// 删除share中的元组
 		db_model.Db.Delete(&share)
 		c.JSON(http.StatusOK, gin.H{
@@ -266,11 +271,15 @@ func GetShare(c *gin.Context) {
 		if err := db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker).Error; err != nil {
 			log.Fatalf("find sticker error: %v", err)
 		}
+		var userinfo db_model.Userinfo
+		db_model.Db.Where("ID = ?", share.User_id).First(&userinfo)
 		data[index].Picture = sticker.Picture
+		data[index].Username = userinfo.Username
 		data[index].LikeNum = share.Like_num
 		data[index].WatchNum = share.Watch_num
 		data[index].UpdatedAt = share.UpdatedAt
-		data[index].Authority = (share.User_id == userID)
+		data[index].Authority = share.User_id == userID
+
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":   0,
