@@ -164,9 +164,6 @@ func EditShare(c *gin.Context) {
 	content := c.PostForm("content")
 	log.Println(content)
 
-	category_name := c.PostForm("category_name")
-	log.Println(category_name)
-
 	//通过sessionID得到userID再进行下一步操作
 
 	userID, _ := user_session.GetUserID(sessionID)
@@ -192,7 +189,7 @@ func EditShare(c *gin.Context) {
 			// category_name 获取
 			// 修改share表
 			share.Content = content
-			db_model.Db.Debug().Save(&share)
+			db_model.Db.Save(&share)
 			// 返回
 			c.JSON(http.StatusOK, gin.H{
 				"code":    0,
