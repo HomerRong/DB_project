@@ -226,12 +226,21 @@ func DeleteShare(c *gin.Context) {
 		var sticker db_model.Sticker
 		db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker)
 		db_model.Db.Delete(&sticker)
+		// 删除comment
+		var comments []db_model.Comment
+		if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Find(&comments).Error; err != nil {
+			log.Fatalf("find share: %v", err)
+		}
+		for _, comment := range comments {
+			db_model.Db.Delete(&comment)
+		}
 		// 删除share中的元组
 		db_model.Db.Delete(&share)
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0,
 			"message": "删除成功",
 		})
+
 	}
 }
 
