@@ -56,5 +56,10 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/deleteshare", api.DeleteShare)
 	apiG.POST("/getshare", api.GetShare)
 
+	apiG.POST("/getcategory", api.GetCategory)
+
+	apiG.POST("/newcomment", api.NewComment)
+	apiG.POST("/getcomment", api.GetComment)
+	apiG.POST("/deletecomment", api.DeleteComment)
 	return r
 }
