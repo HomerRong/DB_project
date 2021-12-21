@@ -28,7 +28,7 @@ func GetCategory(c *gin.Context) {
 	if err := c.BindJSON(&tmp); err != nil {
 		log.Fatalf("Bind GetCategoryRequest error: %v", err)
 	}
-	const PageSize = 5
+	const PageSize = 9
 	PageNum := tmp.PageNum
 	log.Print(PageNum, PageSize)
 	// category_name 找到 category_id

@@ -74,7 +74,7 @@ func GetComment(c *gin.Context) {
 	// 根据share id 查找comment
 	var comments []db_model.Comment
 	//更新时间排序
-	if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Order("Updated_At  DESC").Find(&comments).Error; err != nil {
+	if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Order("Updated_At").Find(&comments).Error; err != nil {
 		log.Fatalf("find share: %v", err)
 	}
 	var data []CommentItem
@@ -95,8 +95,8 @@ func GetComment(c *gin.Context) {
 		// append
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"code":   0,
-		"shares": data,
+		"code":          0,
+		"comment_items": data,
 	})
 
 }
@@ -133,8 +133,8 @@ func DeleteComment(c *gin.Context) {
 			db_model.Db.Delete(&comment)
 			// 返回response
 			c.JSON(http.StatusOK, gin.H{
-				"code":   0,
-				"shares": "删除成功",
+				"code":    0,
+				"message": "删除成功",
 			})
 		}
 	}
