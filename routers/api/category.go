@@ -14,13 +14,22 @@ type GetCategoryRequest struct {
 }
 
 type CategoryItem struct {
-	Picture  string `json:"picture"`
-	Username string `json:"username"`
+	Picture       string `json:"picture"`
+	Username      string `json:"username"`
+	LikeNum       uint   `json:"like_num"`
+	CollectionNum uint   `json:"collection_num"`
 }
 
 type CategoryResponse struct {
 	Code          int            `json:"code"`
 	CategoryItems []CategoryItem `json:"category_items"`
+}
+
+type AddStickerLikeRequest struct {
+	StickerId int `json:"sticker_id"`
+}
+type ReduceStickerLikeRequest struct {
+	StickerId int `json:"sticker_id"`
 }
 
 func GetCategory(c *gin.Context) {
@@ -47,6 +56,8 @@ func GetCategory(c *gin.Context) {
 	var data [PageSize]CategoryItem
 	for index, sticker := range stickers {
 		data[index].Picture = sticker.Picture
+		data[index].LikeNum = sticker.Like_num
+		data[index].CollectionNum = sticker.Collection_num
 		// sticker id 找到share，找share的user id
 		var share db_model.Share
 		if err := db_model.Db.Where("Sticker_id = ?", sticker.ID).First(&share).Error; err != nil {
@@ -62,5 +73,46 @@ func GetCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":           0,
 		"category_items": data,
+	})
+}
+
+func AddStickerLike(c *gin.Context) {
+	var tmp AddStickerLikeRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Fatalf("Bind AddLikeRequest error: %v", err)
+	}
+	var sticker db_model.Sticker
+	if err := db_model.Db.Where("ID = ?", tmp.StickerId).First(&sticker).Error; err != nil {
+		log.Fatalf("find sticker error: %v", err)
+	}
+	log.Println(tmp.StickerId)
+	//修改
+	sticker.Like_num += 1
+	db_model.Db.Debug().Save(&sticker)
+	//返回
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "点赞成功",
+	})
+}
+func ReduceStickerLike(c *gin.Context) {
+	var tmp ReduceStickerLikeRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Fatalf("Bind ReduceLikeRequest error: %v", err)
+	}
+	var sticker db_model.Sticker
+	if err := db_model.Db.Where("ID = ?", tmp.StickerId).First(&sticker).Error; err != nil {
+		log.Fatalf("find sticker error: %v", err)
+	}
+	log.Println(tmp.StickerId)
+	//修改
+	if sticker.Like_num > 0 {
+		sticker.Like_num -= 1
+	}
+	db_model.Db.Debug().Save(&sticker)
+	//返回
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "取消点赞",
 	})
 }

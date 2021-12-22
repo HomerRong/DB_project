@@ -57,11 +57,16 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/getshare", api.GetShare)
 
 	apiG.POST("/getcategory", api.GetCategory)
+	apiG.POST("/addstickerlike", api.AddStickerLike)
+	apiG.POST("/reducestickerlike", api.ReduceStickerLike)
 
 	apiG.POST("/newcomment", api.NewComment)
 	apiG.POST("/getcomment", api.GetComment)
 	apiG.POST("/deletecomment", api.DeleteComment)
 	apiG.POST("/addcommentlike", api.AddCommentLike)
 	apiG.POST("/reducecommentlike", api.ReduceCommentLike)
+
+	apiG.POST("/newcollection", api.NewCollection)
+	apiG.POST("/deletecollection", api.DeleteCollection)
 	return r
 }
