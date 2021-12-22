@@ -20,13 +20,13 @@ type GetCommentRequest struct {
 	ShareId int `json:"share_id"`
 }
 
-//响应
+// CommentItem 响应
 type CommentItem struct {
 	CommentId uint      `json:"comment_id"`
 	Username  string    `json:"username"`
 	Content   string    `json:"content"`
-	Like_num  uint      `json:"like_num"`
-	UpdatedAt time.Time `json:"updated_at"`
+	LikeNum   uint      `json:"like_num"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type DeleteCommentRequest struct {
@@ -70,11 +70,11 @@ func GetComment(c *gin.Context) {
 	if err := c.BindJSON(&tmp); err != nil {
 		log.Fatalf("BindJSON error: %v", err)
 	}
-	log.Println((tmp.ShareId))
+	log.Println(tmp.ShareId)
 	// 根据share id 查找comment
 	var comments []db_model.Comment
 	//更新时间排序
-	if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Order("Updated_At").Find(&comments).Error; err != nil {
+	if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Order("Created_At").Find(&comments).Error; err != nil {
 		log.Fatalf("find share: %v", err)
 	}
 	var data []CommentItem
@@ -88,8 +88,8 @@ func GetComment(c *gin.Context) {
 			CommentId: comment.ID,
 			Username:  user.Username,
 			Content:   comment.Content,
-			Like_num:  comment.Like_num,
-			UpdatedAt: comment.UpdatedAt,
+			LikeNum:   comment.Like_num,
+			CreatedAt: comment.CreatedAt,
 		}
 		data = append(data, item)
 		// append
@@ -139,4 +139,42 @@ func DeleteComment(c *gin.Context) {
 		}
 	}
 
+}
+
+type CommentLikeRequest struct {
+	CommentId uint `json:"comment_id"`
+}
+
+// AddCommentLike api/addcommentlike
+func AddCommentLike(c *gin.Context) {
+	var tmp CommentLikeRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Fatalf("AddCommentLike BindJSON error: %v", err)
+	}
+	var comment db_model.Comment
+	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
+		log.Printf("Find comment error: %v\n", err)
+	}
+	comment.Like_num += 1
+	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+	})
+}
+
+// ReduceCommentLike api/reducecommentlike
+func ReduceCommentLike(c *gin.Context) {
+	var tmp CommentLikeRequest
+	if err := c.BindJSON(&tmp); err != nil {
+		log.Fatalf("AddCommentLike BindJSON error: %v", err)
+	}
+	var comment db_model.Comment
+	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
+		log.Printf("Find comment error: %v\n", err)
+	}
+	comment.Like_num -= 1
+	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+	})
 }

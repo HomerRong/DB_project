@@ -61,5 +61,7 @@ func InitRouter() *gin.Engine {
 	apiG.POST("/newcomment", api.NewComment)
 	apiG.POST("/getcomment", api.GetComment)
 	apiG.POST("/deletecomment", api.DeleteComment)
+	apiG.POST("/addcommentlike", api.AddCommentLike)
+	apiG.POST("/reducecommentlike", api.ReduceCommentLike)
 	return r
 }
