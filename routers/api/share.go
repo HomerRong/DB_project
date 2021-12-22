@@ -51,7 +51,12 @@ func Newshare(c *gin.Context) {
 	//获得图片
 	file, err := c.FormFile("file")
 	if err != nil {
-		log.Fatalf("uploadImg error: %v", err)
+		log.Printf("uploadImg error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "请选择图片",
+		})
+		return
 	}
 	log.Printf("loadimg: %v", file.Filename)
 
@@ -71,6 +76,14 @@ func Newshare(c *gin.Context) {
 	//通过sessionID得到userID再进行下一步操作
 	userID, _ := user_session.GetUserID(sessionID)
 	log.Println(userID)
+
+	if userID == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "没有登录",
+		})
+		return
+	}
 
 	// 根据category_name 得到 category_id
 	var category db_model.Categorie

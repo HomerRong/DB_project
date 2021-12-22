@@ -43,13 +43,20 @@ func NewComment(c *gin.Context) {
 	if tmp.SessionId == "" {
 		log.Println("not have sessionId")
 		c.JSON(http.StatusOK, gin.H{
-			"code":   1,
-			"shares": "没有登录",
+			"code":    1,
+			"message": "没有登录",
 		})
 	} else {
 		//通过sessionID得到userID再进行下一步操作
 		userID, _ := user_session.GetUserID(tmp.SessionId)
-		log.Println(userID)
+		log.Println("userID is", userID)
+		if userID == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"code":    1,
+				"message": "没有登录",
+			})
+			return
+		}
 
 		var comment db_model.Comment
 		comment.Share_id = tmp.ShareId
@@ -111,8 +118,8 @@ func DeleteComment(c *gin.Context) {
 	if tmp.SessionId == "" {
 		log.Println("not have sessionId")
 		c.JSON(http.StatusOK, gin.H{
-			"code":   1,
-			"shares": "没有登录",
+			"code":    1,
+			"message": "没有登录",
 		})
 	} else {
 		// session id 得到 user id
@@ -125,8 +132,8 @@ func DeleteComment(c *gin.Context) {
 		}
 		if userID != comment.User_id {
 			c.JSON(http.StatusOK, gin.H{
-				"code":   1,
-				"shares": "无权限删除",
+				"code":    1,
+				"message": "无权限删除",
 			})
 		} else {
 			// 删除
