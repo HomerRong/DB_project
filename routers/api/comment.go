@@ -57,6 +57,14 @@ func NewComment(c *gin.Context) {
 			})
 			return
 		}
+		if tmp.Content == "" {
+			log.Println("content is null")
+			c.JSON(http.StatusOK, gin.H{
+				"code":    1,
+				"message": "评论为空",
+			})
+			return
+		}
 
 		var comment db_model.Comment
 		comment.Share_id = tmp.ShareId
