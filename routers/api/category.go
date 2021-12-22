@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"main/db_model"
 	"net/http"
