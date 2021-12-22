@@ -29,12 +29,12 @@ type Collection struct {
 type Categorie struct {
 	gorm.Model                  // ID 主键 自增
 	Category_name        string `json:"category_name"   gorm:"type:varchar(200);not null;unique" `
-	Category_description string `json:"category_description"   gorm:"type:varchar(200);not null "`
+	Category_description string `json:"category_description"   gorm:"type:varchar(200);not null"`
 }
 type Share struct {
 	gorm.Model        // // ID 主键 自增 created time 就是 share time
 	User_id    uint   `json:"user_id"     gorm:"not null"   `
-	Content    string `json:"content"   gorm:"type:varchar(200) "`
+	Content    string `json:"content"   gorm:"type:varchar(200);not null"`
 	Sticker_id uint   `json:"sticker_id"     gorm:"not null"   `
 	Like_num   uint   `json:"like_num"    gorm:"default:0"`
 	Watch_num  uint   `json:"watch_num"    gorm:"default:0"`
@@ -43,6 +43,6 @@ type Comment struct {
 	gorm.Model
 	Share_id uint   `json:"share_id"     gorm:"not null"   `
 	User_id  uint   `json:"user_id"     gorm:"not null"   `
-	Content  string `json:"content"   gorm:"type:varchar(200) "`
+	Content  string `json:"content"   gorm:"type:varchar(200);not null"`
 	Like_num uint   `json:"like_num"    gorm:"default:0"`
 }
