@@ -68,5 +68,6 @@ func InitRouter() *gin.Engine {
 
 	apiG.POST("/newcollection", api.NewCollection)
 	apiG.POST("/deletecollection", api.DeleteCollection)
+	apiG.POST("/getcollection", api.GetCollection)
 	return r
 }

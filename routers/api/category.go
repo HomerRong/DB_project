@@ -5,8 +5,6 @@ import (
 	"log"
 	"main/db_model"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type GetCategoryRequest struct {
