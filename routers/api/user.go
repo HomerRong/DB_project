@@ -171,7 +171,7 @@ func GetQuestion(c *gin.Context) {
 		var s db_model.Security
 		err = db_model.Db.Where("ID = ?", user.Security_id).First(&s).Error
 		if err != nil {
-			log.Println("FindShare error: %v", err)
+			log.Printf("find Security error: %v", err)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0,
@@ -202,7 +202,7 @@ func ResetPassword(c *gin.Context) {
 		var s db_model.Security
 		err = db_model.Db.Where("ID = ?", user.Security_id).First(&s).Error
 		if err != nil {
-			log.Println("FindShare error: %v", err)
+			log.Printf("FindShare error: %v", err)
 		}
 		// 验证密保问题
 		if tmp.Answer == s.Answer {
@@ -224,4 +224,47 @@ func ResetPassword(c *gin.Context) {
 		}
 	}
 
+}
+
+func UploadAvatar(c *gin.Context) {
+	var err error
+	file, err := c.FormFile("file")
+	if err != nil {
+		log.Printf("uploadImg error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "请选择图片",
+		})
+		return
+	}
+	log.Printf("loadimg: %v", file.Filename)
+	// 文件重命名
+	tmp := file.Filename
+	file.Filename = pkg.GetUniqueFilename(tmp)
+
+	sessionID := c.PostForm("session_id")
+	log.Println(sessionID)
+
+	//通过sessionID得到userID再进行下一步操作
+	userID, _ := user_session.GetUserID(sessionID)
+	log.Println(userID)
+
+	if userID == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "没有登录",
+		})
+		return
+	}
+	// user的头像
+	var user db_model.Userinfo
+	if err := db_model.Db.Where("ID = ?", userID).First(&user).Error; err != nil {
+		log.Printf("find user error: %v", err)
+	}
+	user.User_pic = file.Filename
+	db_model.Db.Save(&user)
+	c.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "上传头像成功",
+	})
 }

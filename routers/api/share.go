@@ -30,14 +30,15 @@ type GetShareRequest struct {
 
 // 响应中shares数组中的元素
 type ShareResponseStruct struct {
-	ShareId   uint      `json:"share_id"`
-	Username  string    `json:"username"`
-	Content   string    `json:"content"`
-	Picture   string    `json:"picture"`
-	LikeNum   uint      `json:"like_num"`
-	WatchNum  uint      `json:"watch_num"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Authority bool      `json:"authority"` // true为可以修改删除，false反之
+	ShareId    uint      `json:"share_id"`
+	Username   string    `json:"username"`
+	UserAvatar string    `json:"useravatar"`
+	Content    string    `json:"content"`
+	Picture    string    `json:"picture"`
+	LikeNum    uint      `json:"like_num"`
+	WatchNum   uint      `json:"watch_num"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	Authority  bool      `json:"authority"` // true为可以修改删除，false反之
 }
 
 //响应返回的json
@@ -294,6 +295,7 @@ func GetShare(c *gin.Context) {
 		db_model.Db.Where("ID = ?", share.User_id).First(&userinfo)
 		data[index].Picture = sticker.Picture
 		data[index].Username = userinfo.Username
+		data[index].UserAvatar = userinfo.User_pic
 		data[index].LikeNum = share.Like_num
 		data[index].WatchNum = share.Watch_num
 		data[index].UpdatedAt = share.UpdatedAt

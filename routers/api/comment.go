@@ -22,11 +22,12 @@ type GetCommentRequest struct {
 
 // CommentItem 响应
 type CommentItem struct {
-	CommentId uint      `json:"comment_id"`
-	Username  string    `json:"username"`
-	Content   string    `json:"content"`
-	LikeNum   uint      `json:"like_num"`
-	CreatedAt time.Time `json:"created_at"`
+	CommentId  uint      `json:"comment_id"`
+	Username   string    `json:"username"`
+	UserAvatar string    `json:"useravatar"`
+	Content    string    `json:"content"`
+	LikeNum    uint      `json:"like_num"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type DeleteCommentRequest struct {
@@ -100,11 +101,12 @@ func GetComment(c *gin.Context) {
 			log.Fatalf("find user error: %v", err)
 		}
 		item := CommentItem{
-			CommentId: comment.ID,
-			Username:  user.Username,
-			Content:   comment.Content,
-			LikeNum:   comment.Like_num,
-			CreatedAt: comment.CreatedAt,
+			CommentId:  comment.ID,
+			Username:   user.Username,
+			UserAvatar: user.User_pic,
+			Content:    comment.Content,
+			LikeNum:    comment.Like_num,
+			CreatedAt:  comment.CreatedAt,
 		}
 		data = append(data, item)
 		// append
