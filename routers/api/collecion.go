@@ -25,8 +25,9 @@ type GetCollectionRequest struct {
 }
 
 type CollectionItem struct {
-	Picture   string    `json:"picture"`
-	CreatedAt time.Time `json:"created_at"`
+	Picture      string    `json:"picture"`
+	CollectionId uint      `json:"collection_id"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type CollectionResponse struct {
@@ -42,6 +43,13 @@ func NewCollection(c *gin.Context) {
 	}
 	// session id 得到 user id
 	userID, _ := user_session.GetUserID(tmp.SessionId)
+	if userID == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "请登录后再收藏",
+		})
+		return
+	}
 	log.Println(userID)
 	// 创建
 	collection := db_model.Collection{
@@ -128,6 +136,7 @@ func GetCollection(c *gin.Context) {
 			log.Fatalf("find sticker error: %v", err)
 		}
 		data[index].Picture = sticker.Picture
+		data[index].CollectionId = collection.ID
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":             0,
