@@ -4,19 +4,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"main/db_model"
+	"main/pkg/user_session"
 	"net/http"
 )
 
 type GetCategoryRequest struct {
 	CategoryName string `json:"category_name"`
+	SessionId    string `json:"session_id"`
 	PageNum      int    `json:"page_num"` // 当前请求的页号 1开始计数
 }
 
 type CategoryItem struct {
 	Picture       string `json:"picture"`
+	StickerId     uint   `json:"sticker_id"`
 	Username      string `json:"username"`
 	LikeNum       uint   `json:"like_num"`
 	CollectionNum uint   `json:"collection_num"`
+	CollectionID  uint   `json:"collection_id"`
 }
 
 type CategoryResponse struct {
@@ -48,12 +52,16 @@ func GetCategory(c *gin.Context) {
 	// 根据 category.ID 查找 sticker 按更新时间排序
 	var stickers []db_model.Sticker
 
-	if err := db_model.Db.Where("Category_id = ?", category.ID).Order("Updated_At  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&stickers).Error; err != nil {
+	if err := db_model.Db.Where("Category_id = ?", category.ID).Order("like_num  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&stickers).Error; err != nil {
 		log.Fatalf("find share: %v", err)
 	}
 
+	//取得userID
+	userID, _ := user_session.GetUserID(tmp.SessionId)
+
 	var data [PageSize]CategoryItem
 	for index, sticker := range stickers {
+		data[index].StickerId = sticker.ID
 		data[index].Picture = sticker.Picture
 		data[index].LikeNum = sticker.Like_num
 		data[index].CollectionNum = sticker.Collection_num
@@ -68,6 +76,15 @@ func GetCategory(c *gin.Context) {
 			log.Fatalf("find user error: %v", err)
 		}
 		data[index].Username = user.Username
+		// 判断当前用户是否已经收藏该表情包
+		var collection db_model.Collection
+		if err := db_model.Db.Where("user_id = ? and sticker_id = ? ", userID, sticker.ID).Find(&collection).Error; err != nil {
+			// ID为0表示该用户没有收藏该表情包
+			data[index].CollectionID = 0
+
+		} else {
+			data[index].CollectionID = collection.ID
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code":           0,
@@ -87,7 +104,7 @@ func AddStickerLike(c *gin.Context) {
 	log.Println(tmp.StickerId)
 	//修改
 	sticker.Like_num += 1
-	db_model.Db.Debug().Save(&sticker)
+	db_model.Db.Save(&sticker)
 	//返回
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
@@ -108,7 +125,7 @@ func ReduceStickerLike(c *gin.Context) {
 	if sticker.Like_num > 0 {
 		sticker.Like_num -= 1
 	}
-	db_model.Db.Debug().Save(&sticker)
+	db_model.Db.Save(&sticker)
 	//返回
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
