@@ -39,7 +39,7 @@ func NewCollection(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp NewCollectionRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 	// session id 得到 user id
 	userID, _ := user_session.GetUserID(tmp.SessionId)
@@ -59,7 +59,7 @@ func NewCollection(c *gin.Context) {
 	// sticker 的 收藏数+1
 	var sticker db_model.Sticker
 	if err := db_model.Db.Where("ID = ?", tmp.StickerId).First(&sticker).Error; err != nil {
-		log.Fatalf("find sticker error: %v", err)
+		log.Printf("find sticker error: %v", err)
 	}
 	sticker.Collection_num += 1
 	db_model.Db.Debug().Save(&sticker)
@@ -76,7 +76,7 @@ func DeleteCollection(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp DeleteCollectionRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 	// session id 得到 user id
 	userID, _ := user_session.GetUserID(tmp.SessionId)
@@ -84,7 +84,7 @@ func DeleteCollection(c *gin.Context) {
 	// 查找
 	var collection db_model.Collection
 	if err := db_model.Db.Where("ID = ?", tmp.CollectionId).First(&collection).Error; err != nil {
-		log.Printf("Find comment error: %v\n", err)
+		log.Printf("Find collection error: %v\n", err)
 	}
 	// 判断权限
 	if userID != collection.User_id {
@@ -92,14 +92,15 @@ func DeleteCollection(c *gin.Context) {
 			"code":    1,
 			"message": "没有权限删除",
 		})
+		return
 	} else {
 		//sticker 收藏数-1
 		var sticker db_model.Sticker
 		if err := db_model.Db.Where("ID = ?", collection.Sticker_id).First(&sticker).Error; err != nil {
-			log.Fatalf("find sticker error: %v", err)
+			log.Printf("find sticker error: %v", err)
 		}
 		sticker.Collection_num -= 1
-		db_model.Db.Debug().Save(&sticker)
+		db_model.Db.Save(&sticker)
 		//删除
 		db_model.Db.Delete(&collection)
 		//返回响应
@@ -114,7 +115,7 @@ func DeleteCollection(c *gin.Context) {
 func GetCollection(c *gin.Context) {
 	var tmp GetCollectionRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 	const PageSize = 9
 	PageNum := tmp.PageNum
@@ -124,7 +125,7 @@ func GetCollection(c *gin.Context) {
 	//
 	var collections []db_model.Collection
 	if err := db_model.Db.Where("User_id = ?", userID).Order("Created_at  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&collections).Error; err != nil {
-		log.Fatalf("find share: %v", err)
+		log.Printf("find share: %v", err)
 	}
 	//  response
 	var data [PageSize]CollectionItem
@@ -133,7 +134,7 @@ func GetCollection(c *gin.Context) {
 
 		var sticker db_model.Sticker
 		if err := db_model.Db.Where("ID = ?", collection.Sticker_id).First(&sticker).Error; err != nil {
-			log.Fatalf("find sticker error: %v", err)
+			log.Printf("find sticker error: %v", err)
 		}
 		data[index].Picture = sticker.Picture
 		data[index].CollectionId = collection.ID
