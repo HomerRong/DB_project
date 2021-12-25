@@ -39,7 +39,7 @@ func InitRouter() *gin.Engine {
 	// 使用跨域中间件，使前后端分离
 	r.Use(mwCORS)
 
-	apiG := r.Group("/api")
+	apiG := r.Group("/")
 
 	apiG.POST("/upload", api.UploadImg)
 	apiG.GET("/getimg", api.GetImg)
