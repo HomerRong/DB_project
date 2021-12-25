@@ -301,9 +301,11 @@ export default {
         "sticker_id":value,
         "session_id": sessionStorage.getItem("session_id"),
       }).then((response) => {
-          this.categories[index].collection_num += 1;
-          let temp = this.categories[index].collection_active;
-          this.categories[index].collection_active = !temp;
+
+        this.categories[index].collection_num += 1;
+        let temp = this.categories[index].collection_active;
+        this.categories[index].collection_active = !temp;  
+        this.categories[index].collection_id = response.collection_id;
       })
       
       return;
@@ -312,15 +314,18 @@ export default {
       service.post("/api/deletecollection",{
         "collection_id":value,
         "session_id": sessionStorage.getItem("session_id"),
+      }).then((response) => {
       })
       this.categories[index].collection_num -= 1;
       let temp = this.categories[index].collection_active;
       this.categories[index].collection_active = !temp;
+      
       return;
     },
     gotoUploadAvatar(){
           this.$router.push("/uploadavatar");
     },
+
   },
 };
 </script>

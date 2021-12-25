@@ -67,8 +67,9 @@ func NewCollection(c *gin.Context) {
 	// 插入 comment 表
 	db_model.Db.Create(&collection)
 	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": "创建成功",
+		"code":          0,
+		"message":       "创建成功",
+		"collection_id": collection.ID,
 	})
 
 }
