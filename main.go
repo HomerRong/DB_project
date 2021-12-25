@@ -26,7 +26,7 @@ func main() {
 	log.Println("listen on" + server.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
-		return
+		log.Fatalln(err)
 	}
 
 }

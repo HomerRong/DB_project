@@ -279,7 +279,7 @@ func GetShare(c *gin.Context) {
 	//更新时间排序
 	var shares []db_model.Share
 	if err := db_model.Db.Order("Updated_At  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&shares).Error; err != nil {
-		log.Fatalf("find share: %v", err)
+		log.Printf("find share: %v", err)
 	}
 	//  response
 	var data [PageSize]ShareResponseStruct

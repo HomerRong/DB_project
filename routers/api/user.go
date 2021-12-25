@@ -108,6 +108,7 @@ func Login(c *gin.Context) {
 				"code":       0,
 				"message":    "成功登录",
 				"session_id": sessionID,
+				"useravatar": user.User_pic,
 			})
 
 		} else {
@@ -116,6 +117,7 @@ func Login(c *gin.Context) {
 				"code":       1,
 				"message":    "密码错误",
 				"session_id": "",
+				"useravatar": "",
 			})
 		}
 
@@ -260,11 +262,21 @@ func UploadAvatar(c *gin.Context) {
 	var user db_model.Userinfo
 	if err := db_model.Db.Where("ID = ?", userID).First(&user).Error; err != nil {
 		log.Printf("find user error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "上传失败",
+		})
+		return
+	}
+	err = c.SaveUploadedFile(file, "./sticker/"+file.Filename)
+	if err != nil {
+		log.Fatalf("uploadImg error: %v", err)
 	}
 	user.User_pic = file.Filename
 	db_model.Db.Save(&user)
 	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": "上传头像成功",
+		"code":       0,
+		"message":    "上传头像成功",
+		"useravatar": user.User_pic,
 	})
 }

@@ -18,6 +18,7 @@ type CategoryItem struct {
 	Picture       string `json:"picture"`
 	StickerId     uint   `json:"sticker_id"`
 	Username      string `json:"username"`
+	UserAvatar    string `json:"useravatar"`
 	LikeNum       uint   `json:"like_num"`
 	CollectionNum uint   `json:"collection_num"`
 	CollectionID  uint   `json:"collection_id"`
@@ -76,6 +77,7 @@ func GetCategory(c *gin.Context) {
 			log.Fatalf("find user error: %v", err)
 		}
 		data[index].Username = user.Username
+		data[index].UserAvatar = user.User_pic
 		// 判断当前用户是否已经收藏该表情包
 		var collection db_model.Collection
 		if err := db_model.Db.Where("user_id = ? and sticker_id = ? ", userID, sticker.ID).Find(&collection).Error; err != nil {

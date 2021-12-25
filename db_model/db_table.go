@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Userinfo struct {
 	gorm.Model         // ID 主键 自增
 	Username    string `json:"username" gorm:"type:varchar(50); not null; unique"`
-	User_pic    string `json:"user_pic" gorm:"type:varchar(200);not null; default:'.png' " `
+	User_pic    string `json:"user_pic" gorm:"type:varchar(200);not null; default:'default.png' " `
 	Password    string `json:"password" gorm:"type:varchar(50);not null"  `
 	Security_id uint   `json:"security_id" `
 }

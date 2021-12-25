@@ -23,14 +23,10 @@ func UploadImg(c *gin.Context) {
 	content := c.PostForm("content")
 	log.Printf("upload content is %v", content)
 
-	//@TODO 文件重新命名
-	// 上传文件至指定目录
 	err = c.SaveUploadedFile(file, "./test_pic/"+file.Filename)
 	if err != nil {
 		log.Fatalf("uploadImg error: %v", err)
 	}
-
-	//@ToDO 将图片路径保存至数据库
 
 	c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 }
