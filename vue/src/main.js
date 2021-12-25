@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import installElementPlus from './plugins/element'
-import { createRouter, createWebHistory,createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory,createWebHashHistory,createMemoryHistory } from 'vue-router'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import Register from './views/Register.vue'
@@ -33,7 +33,7 @@ const routes = [
 // 还有 createWebHashHistory 和 createMemoryHistory
  
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   base: __dirname,
   routes,
 })
