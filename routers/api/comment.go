@@ -1,11 +1,14 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"main/db_model"
 	"main/pkg/user_session"
 	"net/http"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -77,6 +80,7 @@ func NewComment(c *gin.Context) {
 			"code":    0,
 			"message": "创建成功",
 		})
+
 	}
 
 }
@@ -146,7 +150,15 @@ func DeleteComment(c *gin.Context) {
 				"message": "无权限删除",
 			})
 		} else {
-			// 删除
+			// 删除 对应comment like
+			var commentlikes []db_model.CommentLike
+			if err := db_model.Db.Where("Comment_id = ?", comment.ID).Find(&commentlikes).Error; err != nil {
+				log.Fatalf("find commentlikes: %v", err)
+			}
+			for _, commentlike := range commentlikes {
+				db_model.Db.Delete(&commentlike)
+			}
+			// 删除 comment
 			db_model.Db.Delete(&comment)
 			// 返回response
 			c.JSON(http.StatusOK, gin.H{
@@ -159,39 +171,94 @@ func DeleteComment(c *gin.Context) {
 }
 
 type CommentLikeRequest struct {
-	CommentId uint `json:"comment_id"`
+	CommentId uint   `json:"comment_id"`
+	SessionId string `json:"session_id"`
 }
 
-// AddCommentLike api/addcommentlike
-func AddCommentLike(c *gin.Context) {
+func AlterCommentLike(c *gin.Context) {
 	var tmp CommentLikeRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("AddCommentLike BindJSON error: %v", err)
+		log.Fatalf("CommentLike BindJSON error: %v", err)
 	}
-	var comment db_model.Comment
-	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
-		log.Printf("Find comment error: %v\n", err)
+	//通过sessionID得到userID再进行下一步操作
+	if tmp.SessionId == "" {
+		log.Println("not have sessionId")
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "没有登录",
+		})
+		return
 	}
-	comment.Like_num += 1
-	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
-	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
-	})
+	userID, _ := user_session.GetUserID(tmp.SessionId)
+	log.Println("userID is", userID)
+
+	// 查找是否存在 item在 comment like 表
+	var commentlike db_model.CommentLike
+	err := db_model.Db.Where("User_id = ? AND Comment_id = ?", userID, tmp.CommentId).First(&commentlike).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 不存在
+		// 插入commentlike 表
+		commentlike.User_id = userID
+		commentlike.Comment_id = tmp.CommentId
+		db_model.Db.Create(&commentlike)
+		// comment like num +1
+		var comment db_model.Comment
+		if err := db_model.Db.Where("ID = ?", tmp.CommentId).First(&comment).Error; err != nil {
+			log.Printf("Find comment error: %v\n", err)
+		}
+		comment.Like_num += 1
+		db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 0,
+		})
+
+	} else {
+		// 存在
+		// 从commentlike 表删除
+		db_model.Db.Delete(&commentlike)
+		// comment like num -1
+		var comment db_model.Comment
+		if err := db_model.Db.Where("ID = ?", tmp.CommentId).First(&comment).Error; err != nil {
+			log.Printf("Find comment error: %v\n", err)
+		}
+		comment.Like_num -= 1
+		db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 0,
+		})
+
+	}
 }
 
-// ReduceCommentLike api/reducecommentlike
-func ReduceCommentLike(c *gin.Context) {
-	var tmp CommentLikeRequest
-	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("AddCommentLike BindJSON error: %v", err)
-	}
-	var comment db_model.Comment
-	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
-		log.Printf("Find comment error: %v\n", err)
-	}
-	comment.Like_num -= 1
-	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
-	c.JSON(http.StatusOK, gin.H{
-		"code": 0,
-	})
-}
+//func AddCommentLike(c *gin.Context) {
+//	var tmp CommentLikeRequest
+//	if err := c.BindJSON(&tmp); err != nil {
+//		log.Fatalf("AddCommentLike BindJSON error: %v", err)
+//	}
+//	var comment db_model.Comment
+//	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
+//		log.Printf("Find comment error: %v\n", err)
+//	}
+//	comment.Like_num += 1
+//	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+//	c.JSON(http.StatusOK, gin.H{
+//		"code": 0,
+//	})
+//}
+//
+//// ReduceCommentLike api/reducecommentlike
+//func ReduceCommentLike(c *gin.Context) {
+//	var tmp CommentLikeRequest
+//	if err := c.BindJSON(&tmp); err != nil {
+//		log.Fatalf("AddCommentLike BindJSON error: %v", err)
+//	}
+//	var comment db_model.Comment
+//	if err := db_model.Db.Where("ID   = ?", tmp.CommentId).First(&comment).Error; err != nil {
+//		log.Printf("Find comment error: %v\n", err)
+//	}
+//	comment.Like_num -= 1
+//	db_model.Db.Model(&comment).Update("like_num", comment.Like_num)
+//	c.JSON(http.StatusOK, gin.H{
+//		"code": 0,
+//	})
+//}

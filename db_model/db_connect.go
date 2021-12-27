@@ -18,6 +18,20 @@ type DbInfo struct {
 
 var Db *gorm.DB
 
+func MigrateDB() {
+	Db.AutoMigrate(
+		&Userinfo{},
+		&Security{},
+		&Sticker{},
+		&Collection{},
+		&Categorie{},
+		&Share{},
+		&Comment{},
+		&CommentLike{},
+		&StickerLike{},
+	)
+}
+
 func SetupDb() {
 	var err error
 	connStr := "host=" + settings.DatabaseSetting.Host + " port=" + settings.DatabaseSetting.Port + " user=" +

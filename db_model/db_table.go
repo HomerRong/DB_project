@@ -46,3 +46,14 @@ type Comment struct {
 	Content  string `json:"content"   gorm:"type:varchar(200);not null"`
 	Like_num uint   `json:"like_num"    gorm:"default:0"`
 }
+type StickerLike struct {
+	gorm.Model
+	User_id    uint `json:"user_id"     gorm:"not null"`
+	Sticker_id uint `json:"sticker_id"     gorm:"not null"`
+}
+
+type CommentLike struct {
+	gorm.Model
+	User_id    uint `json:"user_id"     gorm:"not null"`
+	Comment_id uint `json:"comment_id"     gorm:"not null"`
+}

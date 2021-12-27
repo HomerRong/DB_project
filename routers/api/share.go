@@ -236,18 +236,37 @@ func DeleteShare(c *gin.Context) {
 			"message": "user不匹配",
 		})
 	} else {
-		// 删除表情包记录
 		var sticker db_model.Sticker
 		db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker)
+		// 删除 sticker like item
+		var stickerlikes []db_model.StickerLike
+		if err := db_model.Db.Where("Sticker_id = ?", sticker.ID).Find(&stickerlikes).Error; err != nil {
+			log.Fatalf("find stickerlikes: %v", err)
+		}
+		for _, stickerlike := range stickerlikes {
+			db_model.Db.Delete(&stickerlike)
+		}
+		// 删除表情包记录
 		db_model.Db.Delete(&sticker)
+
 		// 删除comment
 		var comments []db_model.Comment
 		if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Find(&comments).Error; err != nil {
 			log.Fatalf("find share: %v", err)
 		}
 		for _, comment := range comments {
+			// 删除comment like中的
+			var commentlikes []db_model.CommentLike
+			if err := db_model.Db.Where("Comment_id = ?", comment.ID).Find(&commentlikes).Error; err != nil {
+				log.Fatalf("find commentlikes: %v", err)
+			}
+			for _, commentlike := range commentlikes {
+				db_model.Db.Delete(&commentlike)
+			}
+
 			db_model.Db.Delete(&comment)
 		}
+
 		// 删除share中的元组
 		db_model.Db.Delete(&share)
 		c.JSON(http.StatusOK, gin.H{
