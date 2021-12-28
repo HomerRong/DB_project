@@ -43,7 +43,7 @@ type DeleteCommentRequest struct {
 func NewComment(c *gin.Context) {
 	var tmp NewCommentRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 	// session id 为空 没有登录
 	if tmp.SessionId == "" {
@@ -90,7 +90,7 @@ func NewComment(c *gin.Context) {
 func GetComment(c *gin.Context) {
 	var tmp GetCommentRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 	// 获得用户的id
 	userID, _ := user_session.GetUserID(tmp.SessionId)
@@ -99,14 +99,14 @@ func GetComment(c *gin.Context) {
 	var comments []db_model.Comment
 	//更新时间排序
 	if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Order("Created_At").Find(&comments).Error; err != nil {
-		log.Fatalf("find share: %v", err)
+		log.Printf("find share: %v", err)
 	}
 	var data []CommentItem
 	for _, comment := range comments {
 		// user id 找到user name
 		var user db_model.Userinfo
 		if err := db_model.Db.Where("ID = ?", comment.User_id).First(&user).Error; err != nil {
-			log.Fatalf("find user error: %v", err)
+			log.Printf("find user error: %v", err)
 		}
 		item := CommentItem{
 			CommentId:  comment.ID,
@@ -139,7 +139,7 @@ func DeleteComment(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp DeleteCommentRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 
 	if tmp.SessionId == "" {
@@ -166,7 +166,7 @@ func DeleteComment(c *gin.Context) {
 			// 删除 对应comment like
 			var commentlikes []db_model.CommentLike
 			if err := db_model.Db.Where("Comment_id = ?", comment.ID).Find(&commentlikes).Error; err != nil {
-				log.Fatalf("find commentlikes: %v", err)
+				log.Printf("find commentlikes: %v", err)
 			}
 			for _, commentlike := range commentlikes {
 				db_model.Db.Delete(&commentlike)
@@ -191,7 +191,7 @@ type CommentLikeRequest struct {
 func AlterCommentLike(c *gin.Context) {
 	var tmp CommentLikeRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("CommentLike BindJSON error: %v", err)
+		log.Printf("CommentLike BindJSON error: %v", err)
 	}
 	//通过sessionID得到userID再进行下一步操作
 	if tmp.SessionId == "" {

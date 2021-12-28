@@ -43,7 +43,7 @@ func Register(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp RegisterRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 
 	// 用户名不能重复
@@ -83,7 +83,7 @@ func Login(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp LoginByNameRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 
 	var user db_model.Userinfo
@@ -155,7 +155,7 @@ func Logout(c *gin.Context) {
 func GetQuestion(c *gin.Context) {
 	var tmp GetQuestionRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 
 	// 查询 用 username 查询
@@ -187,7 +187,7 @@ func ResetPassword(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp ResetPasswordRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Printf("BindJSON error: %v", err)
 	}
 
 	// 查询 用 username 查询
@@ -270,7 +270,7 @@ func UploadAvatar(c *gin.Context) {
 	}
 	err = c.SaveUploadedFile(file, "./sticker/"+file.Filename)
 	if err != nil {
-		log.Fatalf("uploadImg error: %v", err)
+		log.Printf("uploadImg error: %v", err)
 	}
 	user.User_pic = file.Filename
 	db_model.Db.Save(&user)

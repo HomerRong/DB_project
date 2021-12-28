@@ -44,7 +44,7 @@ type StickerLikeRequest struct {
 func GetCategory(c *gin.Context) {
 	var tmp GetCategoryRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("Bind GetCategoryRequest error: %v", err)
+		log.Printf("Bind GetCategoryRequest error: %v", err)
 	}
 	const PageSize = 9
 	PageNum := tmp.PageNum
@@ -52,14 +52,14 @@ func GetCategory(c *gin.Context) {
 	// category_name 找到 category_id
 	var category db_model.Categorie
 	if err := db_model.Db.Where("Category_name = ?", tmp.CategoryName).First(&category).Error; err != nil {
-		log.Fatalf("find category error: %v", err)
+		log.Printf("find category error: %v", err)
 	}
 	log.Print(category.ID)
 	// 根据 category.ID 查找 sticker 按更新时间排序
 	var stickers []db_model.Sticker
 
 	if err := db_model.Db.Where("Category_id = ?", category.ID).Order("like_num  DESC").Offset((PageNum - 1) * PageSize).Limit(PageSize).Find(&stickers).Error; err != nil {
-		log.Fatalf("find share: %v", err)
+		log.Printf("find share: %v", err)
 	}
 
 	//取得userID
@@ -74,12 +74,12 @@ func GetCategory(c *gin.Context) {
 		// sticker id 找到share，找share的user id
 		var share db_model.Share
 		if err := db_model.Db.Where("Sticker_id = ?", sticker.ID).First(&share).Error; err != nil {
-			log.Fatalf("find share error: %v", err)
+			log.Printf("find share error: %v", err)
 		}
 		// user id 找到user name
 		var user db_model.Userinfo
 		if err := db_model.Db.Where("ID = ?", share.User_id).First(&user).Error; err != nil {
-			log.Fatalf("find user error: %v", err)
+			log.Printf("find user error: %v", err)
 		}
 		data[index].Username = user.Username
 		data[index].UserAvatar = user.User_pic
@@ -111,7 +111,7 @@ func GetCategory(c *gin.Context) {
 func AlterStickerLike(c *gin.Context) {
 	var tmp StickerLikeRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("Bind StickerLikeRequest error: %v", err)
+		log.Printf("Bind StickerLikeRequest error: %v", err)
 	}
 	log.Println(tmp.StickerId)
 	//通过sessionID得到userID再进行下一步操作

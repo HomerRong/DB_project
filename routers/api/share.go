@@ -218,7 +218,7 @@ func DeleteShare(c *gin.Context) {
 	// 从请求中把数据取出来
 	var tmp DeleteShareRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("BindJSON error: %v", err)
+		log.Println("BindJSON error: %v", err)
 	}
 	// session id 得到 user id
 	userID, _ := user_session.GetUserID(tmp.SessionId)
@@ -241,7 +241,7 @@ func DeleteShare(c *gin.Context) {
 		// 删除 sticker like item
 		var stickerlikes []db_model.StickerLike
 		if err := db_model.Db.Where("Sticker_id = ?", sticker.ID).Find(&stickerlikes).Error; err != nil {
-			log.Fatalf("find stickerlikes: %v", err)
+			log.Println("find stickerlikes: %v", err)
 		}
 		for _, stickerlike := range stickerlikes {
 			db_model.Db.Delete(&stickerlike)
@@ -252,13 +252,13 @@ func DeleteShare(c *gin.Context) {
 		// 删除comment
 		var comments []db_model.Comment
 		if err := db_model.Db.Where("Share_id = ?", tmp.ShareId).Find(&comments).Error; err != nil {
-			log.Fatalf("find share: %v", err)
+			log.Println("find share: %v", err)
 		}
 		for _, comment := range comments {
 			// 删除comment like中的
 			var commentlikes []db_model.CommentLike
 			if err := db_model.Db.Where("Comment_id = ?", comment.ID).Find(&commentlikes).Error; err != nil {
-				log.Fatalf("find commentlikes: %v", err)
+				log.Println("find commentlikes: %v", err)
 			}
 			for _, commentlike := range commentlikes {
 				db_model.Db.Delete(&commentlike)
@@ -282,7 +282,7 @@ func GetShare(c *gin.Context) {
 	const PageSize = 5
 	var tmp GetShareRequest
 	if err := c.BindJSON(&tmp); err != nil {
-		log.Fatalf("Bind GetShareRequest error: %v", err)
+		log.Println("Bind GetShareRequest error: %v", err)
 	}
 
 	PageNum := tmp.PageNum
@@ -308,7 +308,7 @@ func GetShare(c *gin.Context) {
 		// 由sticker id 查 picture
 		var sticker db_model.Sticker
 		if err := db_model.Db.Where("ID = ?", share.Sticker_id).First(&sticker).Error; err != nil {
-			log.Fatalf("find sticker error: %v", err)
+			log.Println("find sticker error: %v", err)
 		}
 		var userinfo db_model.Userinfo
 		db_model.Db.Where("ID = ?", share.User_id).First(&userinfo)

@@ -13,7 +13,7 @@ func UploadImg(c *gin.Context) {
 	var err error
 	file, err := c.FormFile("file")
 	if err != nil {
-		log.Fatalf("uploadImg error: %v", err)
+		log.Printf("uploadImg error: %v", err)
 	}
 	log.Printf("loadimg: %v", file.Filename)
 
