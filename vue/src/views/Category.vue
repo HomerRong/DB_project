@@ -237,7 +237,8 @@ export default {
         }
         if(this.categories != null){
           for(let i = 0;i < this.categories.length;i++){
-              this.categories[i]["star_active"] = true;
+              if(this.categories[i].has_sticker_like == false) this.categories[i]["star_active"] = true;
+              else this.categories[i]["star_active"] = false;
               if(this.categories[i].collection_id == 0) this.categories[i]['collection_active'] = true;
               else this.categories[i]['collection_active'] = false;
           }
@@ -278,8 +279,17 @@ export default {
     },
 
     addstar(value,index){
-      service.post("/api/addstickerlike",{
+      if(sessionStorage.getItem("is_login") == "false"){
+        ElNotification.error({
+            title: '错误',
+            message: "请登录后再点赞",
+            duration: 0
+        })
+        return;
+      }
+      service.post("/api/alterstickerlike",{
         "sticker_id":value,
+        "session_id": sessionStorage.getItem("session_id"),
       })
       this.categories[index].like_num += 1;
       let temp = this.categories[index].star_active;
@@ -287,8 +297,9 @@ export default {
       return;
     },
     cancelstar(value,index){
-      service.post("/api/reducestickerlike",{
+      service.post("/api/alterstickerlike",{
         "sticker_id":value,
+        "session_id": sessionStorage.getItem("session_id"),
       })
       this.categories[index].like_num -= 1;
       let temp = this.categories[index].star_active;

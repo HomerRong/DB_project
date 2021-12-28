@@ -18,13 +18,14 @@ type GetCategoryRequest struct {
 }
 
 type CategoryItem struct {
-	Picture       string `json:"picture"`
-	StickerId     uint   `json:"sticker_id"`
-	Username      string `json:"username"`
-	UserAvatar    string `json:"useravatar"`
-	LikeNum       uint   `json:"like_num"`
-	CollectionNum uint   `json:"collection_num"`
-	CollectionID  uint   `json:"collection_id"`
+	Picture        string `json:"picture"`
+	StickerId      uint   `json:"sticker_id"`
+	Username       string `json:"username"`
+	UserAvatar     string `json:"useravatar"`
+	LikeNum        uint   `json:"like_num"`
+	CollectionNum  uint   `json:"collection_num"`
+	CollectionID   uint   `json:"collection_id"`
+	HasStickerLike bool   `json:"has_sticker_like"`
 }
 
 type CategoryResponse struct {
@@ -90,6 +91,15 @@ func GetCategory(c *gin.Context) {
 
 		} else {
 			data[index].CollectionID = collection.ID
+		}
+
+		// 查找是否存在 item在 sticker like 表
+		var stickerlike db_model.StickerLike
+		err := db_model.Db.Where("User_id = ? AND Sticker_id = ?", userID, sticker.ID).First(&stickerlike).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			data[index].HasStickerLike = false
+		} else {
+			data[index].HasStickerLike = true
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
