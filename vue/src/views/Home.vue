@@ -6,7 +6,7 @@
       mode="horizontal"
       @select="handleSelect"
       active-text-color="#409eff"
-      router="true"
+      router
       style="dispaly: flex; justify-content: flex-end"
     >
       <el-menu-item index="/">主页</el-menu-item>
@@ -48,7 +48,7 @@
       :default-active="activeIndex"
       @select="handleSelect"
       active-text-color="#409eff"
-      router="true"
+      router
       style="dispaly: flex;"
     >
       <el-menu-item @click="dialogVisible = true">
@@ -451,12 +451,15 @@ export default {
     getcomment(value){
       service.post("/api/getcomment",{
         "share_id": value,
+        "session_id": sessionStorage.getItem("session_id"),
       })
       .then(response=>{
         this.comment_items = response.comment_items;
         if(this.comment_items != null){
           for(let i = 0;i < this.comment_items.length;i++){
-              this.comment_items[i]["star_active"] = true;
+            // 已点赞，所以设置为已点赞状态
+              if(this.comment_items[i].has_comment_like == false) this.comment_items[i]["star_active"] = true;
+              else this.comment_items[i]["star_active"] = false;
           }
         }
         
@@ -505,8 +508,17 @@ export default {
     },
 
     addstar(value,index){
-      service.post("/api/addcommentlike",{
+      if(sessionStorage.getItem("is_login") == "false"){
+        ElNotification.error({
+            title: '错误',
+            message: "请登录后再点赞",
+            duration: 0
+        })
+        return;
+      }
+      service.post("/api/altercommentlike",{
         "comment_id":value,
+        "session_id": sessionStorage.getItem("session_id"),
       })
       this.comment_items[index].like_num += 1;
       let temp = this.comment_items[index].star_active;
@@ -515,8 +527,9 @@ export default {
       return;
     },
     cancelstar(value,index){
-      service.post("/api/reducecommentlike",{
+      service.post("/api/altercommentlike",{
         "comment_id":value,
+        "session_id": sessionStorage.getItem("session_id"),
       })
       this.comment_items[index].like_num -= 1;
       let temp = this.comment_items[index].star_active;

@@ -20,17 +20,19 @@ type NewCommentRequest struct {
 }
 
 type GetCommentRequest struct {
-	ShareId int `json:"share_id"`
+	ShareId   int    `json:"share_id"`
+	SessionId string `json:"session_id"`
 }
 
 // CommentItem 响应
 type CommentItem struct {
-	CommentId  uint      `json:"comment_id"`
-	Username   string    `json:"username"`
-	UserAvatar string    `json:"useravatar"`
-	Content    string    `json:"content"`
-	LikeNum    uint      `json:"like_num"`
-	CreatedAt  time.Time `json:"created_at"`
+	CommentId      uint      `json:"comment_id"`
+	Username       string    `json:"username"`
+	UserAvatar     string    `json:"useravatar"`
+	Content        string    `json:"content"`
+	LikeNum        uint      `json:"like_num"`
+	CreatedAt      time.Time `json:"created_at"`
+	HasCommentLike bool      `json:"has_comment_like"`
 }
 
 type DeleteCommentRequest struct {
@@ -90,6 +92,8 @@ func GetComment(c *gin.Context) {
 	if err := c.BindJSON(&tmp); err != nil {
 		log.Fatalf("BindJSON error: %v", err)
 	}
+	// 获得用户的id
+	userID, _ := user_session.GetUserID(tmp.SessionId)
 	log.Println(tmp.ShareId)
 	// 根据share id 查找comment
 	var comments []db_model.Comment
@@ -112,6 +116,15 @@ func GetComment(c *gin.Context) {
 			LikeNum:    comment.Like_num,
 			CreatedAt:  comment.CreatedAt,
 		}
+		// 查找是否存在 item在 comment like 表
+		var commentlike db_model.CommentLike
+		err := db_model.Db.Where("User_id = ? AND Comment_id = ?", userID, comment.ID).First(&commentlike).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			item.HasCommentLike = false
+		} else {
+			item.HasCommentLike = true
+		}
+
 		data = append(data, item)
 		// append
 	}
@@ -191,6 +204,13 @@ func AlterCommentLike(c *gin.Context) {
 	}
 	userID, _ := user_session.GetUserID(tmp.SessionId)
 	log.Println("userID is", userID)
+	if userID == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":    1,
+			"message": "请登录后再点赞",
+		})
+		return
+	}
 
 	// 查找是否存在 item在 comment like 表
 	var commentlike db_model.CommentLike
