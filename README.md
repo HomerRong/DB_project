@@ -1,176 +1,73 @@
-## E-R图设计
+# 数据库大作业
 
-使用[dbdiagram.io](https://dbdiagram.io/)
+## 概述
+设计一个有分享，评论，分类，收藏功能的表情包分享站。
 
-由表生成ER模型
+前端使用`vue3 + element plus + vue cli`， 后端使用`gin + gorm`，代理部署使用`nginx`
 
+数据库 `opengauss`
 
+缓存 `redis`
 
-**用户users：**
+设计模式：
+前后端分离模式，通过json数据进行交互
 
-user_id：用户的id [PK]
+E-R图：
+![](pic/ER_v2.png)
 
-username：用户名
+## build
+前端部分：
+进入vue文件夹，运行`npm run build`打包到`dist`文件夹当中
 
-user_pic: 用户头像 （存储图片的路径）
+后端部分：
+首先要建立conf文件夹，创建app.ini文件，具体格式如下
+```
+[server]
+#debug or release
+RunMode = debug
+#端口号
+HttpPort = 9000
 
-password：用户的密码
 
-security_id: 密保问题的id
+[database]
+User = gaussdb
+Password = 
+Host = 127.0.0.1
+Port = 5432
+Name = postgres
 
-
-
-**密保问题库security：**
-
-security_id：密保问题的id[PK]
-
-question：问题
-
-answer：答案
-
-
-
-**表情包sticker：**
-
-sticker_id: 表情包的id[PK]
-
-picture: 表情包的内容（存储图片的路径）
-
-category_id: 类别
-
-like_num: 点赞次数
-
-collection_num: 收藏次数
-
-
-
-**收藏collections：**
-
-collection_id: 收藏条目id[PK]
-
-user_id：用户id
-
-sticker_id: 表情包
-
-
-
-**类别category：**
-
-category_id：类别id[PK]
-
-category_name: 类别的名字
-
-category_description： 类别的描述
-
-
-
-**分享内容share：**
-
-share_id:分享内容的id [PK]
-
-user_id: 用户id
-
-content:  文本内容
-
-sticker_id: 表情包id
-
-like_num: 点赞次数
-
-watch_num: 查看次数
-
-share_time: 分享时间
-
-
-
-
-
-**评论comment：**
-
-comment_id:  评论id [PK]
-
-share_id:  分享id
-
-user_id : 用户的id
-
-content:  文本
-
-like_num: 点赞次数
-
-comment_time： 评论时间
-
-
-
-
-
-```sql
-//dbdiagram.io上的代码
-Table users{
-  user_id int [pk]
-  username varchar
-  user_pic varchar
-  password varchar
-  security_id int
-}
-
-Ref: users.security_id - security_items.security_id
-
-Table security_items{
-  security_id int [pk]
-  question varchar
-  answer varchar
-}
-
-Table stickers{
-  sticker_id int [pk]
-  picture varchar
-  category_id int
-  collection_num int
-  like_num int
-}
-
-Ref: stickers.category_id > categories.category_id
-
-
-Table collections{
-  collection_id int [pk]
-  user_id int
-  sticker_id int
-}
-
-Ref: collections.sticker_id > stickers.sticker_id
-Ref: collections.user_id > users.user_id
-
-Table categories{
-  category_id int [pk]
-  category_name varchar
-  category_description varchar
-}
-
-Table shares{
-  share_id int [pk]
-  user_id int 
-  content varchar
-  sticker_id int
-  like_num int
-  watch_num int
-  share_time datetime
-}
-
-Ref: shares.share_id > stickers.sticker_id
-Ref: shares.user_id > users.user_id
-
-Table comment{
-  comment_id int [pk]
-  user_id int
-  share_id int
-  content varchar
-  like_num int
-  comment_time datetime
-}
-
-Ref: comment.share_id > shares.share_id
-Ref: comment.user_id > users.user_id
+[redis]
+Addr = 127.0.0.1:6379
+Password = 
+DB = 1
+IdleTimeout = 200
 ```
 
-![](pic/ER.png)
+然后执行`go build main.go`生成可执行文件
 
+部署：
+使用nginx部署，指定root目录位置为dist文件夹所在位置
+
+同时要考虑前后端跨域问题，需要设置反向代理，设置配置文件
+
+```nginx
+    location / {
+        root    XXXXXX; # dist文件夹所在位置
+        index  index.html index.htm;
+        #路由history模式下需要重定向到index.html,
+        #否则会出现404
+        try_files $uri $uri/ /index.html; 
+        
+    }
+
+    # 反向代理    
+    location /api/ {
+        rewrite  ^.+api/?(.*)$ /$1 break;
+        include  uwsgi_params;
+        proxy_pass  http://127.0.0.1:9000;
+    }
+```
+
+`start nginx`
+
+修改配置后，需要重新加载配置文件 `nginx -s reload`
